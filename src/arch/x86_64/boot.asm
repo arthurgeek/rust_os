@@ -9,6 +9,9 @@ start:
   call check_cpuid
   call check_long_mode
 
+  call set_up_page_tables
+  call enable_paging
+
   ; print Hello World! to the screen
   mov word [0xb8000], 0x0148 ; H
   mov word [0xb8002], 0x0265 ; e
@@ -112,6 +115,29 @@ set_up_page_tables:
   inc ecx             ; increase counter
   cmp ecx, 512        ; if counter is 512, the whole P2 table is mapped
   jne .map_p2_table   ; else map the next entry
+
+  ret
+
+enable_paging:
+  ; load P4 to cr3 register
+  mov eax, p4_table
+  mov cr3, eax
+
+  ; enable PAE-flag in cr4
+  mov eax, cr4
+  or eax, 1 << 5
+  mov cr4, eax
+
+  ; set the long mode bit in the EFER MSR (model specific register)
+  mov ecx, 0xC0000080
+  rdmsr
+  or eax, 1 << 8
+  wrmsr
+
+  ; enable paging in the cr0 register
+  mov eax, cr0
+  or eax, 1 << 31
+  mov cr0, eax
 
   ret
 
