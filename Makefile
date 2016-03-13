@@ -20,5 +20,8 @@ build/os.iso: build/kernel.bin grub.cfg
 
 build: build/os.iso
 
+run: build/os.iso
+	qemu-system-x86_64 -cdrom build/os.iso
+
 clean:
 	rm -rf build
