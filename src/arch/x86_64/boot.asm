@@ -15,6 +15,12 @@ start:
   ; load the 64-bit GDT
   lgdt [gdt64.pointer]
 
+  ; update selectors
+  mov ax, 16
+  mov ss, ax ; stack selector
+  mov ds, ax ; data selector
+  mov es, ax ; extra selector
+
   ; print Hello World! to the screen
   mov word [0xb8000], 0x0148 ; H
   mov word [0xb8002], 0x0265 ; e
