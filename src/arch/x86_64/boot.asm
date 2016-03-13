@@ -12,6 +12,9 @@ start:
   call set_up_page_tables
   call enable_paging
 
+  ; load the 64-bit GDT
+  lgdt [gdt64.pointer]
+
   ; print Hello World! to the screen
   mov word [0xb8000], 0x0148 ; H
   mov word [0xb8002], 0x0265 ; e
@@ -164,3 +167,12 @@ p2_table:
 stack_bottom:
   resb 64
 stack_top:
+
+section .rodata
+gdt64:
+  dq 0; zero entry
+  dq (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53) ; code segment
+  dq (1<<44) | (1<<47) | (1<<41) ; data segment
+.pointer:
+  dw $ - gdt64 - 1
+  dq gdt64
