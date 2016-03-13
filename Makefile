@@ -1,26 +1,37 @@
-default: build
-.PHONY: clean
+arch ?= x86_64
+kernel := build/kernel-$(arch).bin
+iso := build/os-$(arch).iso
+docker_args := run --rm -v $(shell pwd):/intermezzOS arthurgeek/intermezzos
 
-build/multiboot_header.o: multiboot_header.asm
-	mkdir -p build
-	docker run --rm -v $(shell pwd):/intermezzOS arthurgeek/intermezzos nasm -f elf64 multiboot_header.asm -o build/multiboot_header.o
+linker_script := src/arch/$(arch)/linker.ld
+grub_cfg := src/arch/$(arch)/grub.cfg
+assembly_source_files := $(wildcard src/arch/$(arch)/*.asm)
+assembly_object_files := $(patsubst src/arch/$(arch)/%.asm, \
+    build/arch/$(arch)/%.o, $(assembly_source_files))
 
-build/boot.o: boot.asm
-	mkdir -p build
-	docker run --rm -v $(shell pwd):/intermezzOS arthurgeek/intermezzos nasm -f elf64 boot.asm -o build/boot.o
+.PHONY: all clean run iso
 
-build/kernel.bin: build/multiboot_header.o build/boot.o linker.ld
-	docker run --rm -v $(shell pwd):/intermezzOS arthurgeek/intermezzos ld -n -o build/kernel.bin -T linker.ld build/multiboot_header.o build/boot.o
-
-build/os.iso: build/kernel.bin grub.cfg
-	mkdir -p build/isofiles/boot/grub
-	cp grub.cfg build/isofiles/boot/grub
-	cp build/kernel.bin build/isofiles/boot/
-	docker run --rm -v $(shell pwd):/intermezzOS arthurgeek/intermezzos grub-mkrescue /usr/lib/grub/i386-pc -o build/os.iso build/isofiles
-build: build/os.iso
-
-run: build/os.iso
-	qemu-system-x86_64 -cdrom build/os.iso
+all: $(kernel)
 
 clean:
-	rm -rf build
+	@rm -r build
+
+run: $(iso)
+	@qemu-system-x86_64 -cdrom $(iso)
+
+iso: $(iso)
+
+$(iso): $(kernel) $(grub_cfg)
+	@mkdir -p build/isofiles/boot/grub
+	@cp $(kernel) build/isofiles/boot/kernel.bin
+	@cp $(grub_cfg) build/isofiles/boot/grub
+	@docker $(docker_args) grub-mkrescue -o $(iso) build/isofiles 2> /dev/null
+	@rm -r build/isofiles
+
+$(kernel): $(assembly_object_files) $(linker_script)
+	@docker $(docker_args) ld -n -T $(linker_script) -o $(kernel) $(assembly_object_files)
+
+# compile assembly files
+build/arch/$(arch)/%.o: src/arch/$(arch)/%.asm
+	@mkdir -p $(shell dirname $@)
+	@docker $(docker_args) nasm -felf64 $< -o $@
