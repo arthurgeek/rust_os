@@ -3,6 +3,7 @@ kernel := build/kernel-$(arch).bin
 iso := build/os-$(arch).iso
 docker_args := run --rm -v $(shell pwd):/intermezzOS arthurgeek/intermezzos
 target := $(arch)-unknown-linux-gnu
+rust_os := target/$(target)/debug/libos.a
 
 linker_script := src/arch/$(arch)/linker.ld
 grub_cfg := src/arch/$(arch)/grub.cfg
@@ -29,8 +30,8 @@ $(iso): $(kernel) $(grub_cfg)
 	@docker $(docker_args) grub-mkrescue -o $(iso) build/isofiles 2> /dev/null
 	@rm -r build/isofiles
 
-$(kernel): $(assembly_object_files) $(linker_script)
-	@docker $(docker_args) ld -n -T $(linker_script) -o $(kernel) $(assembly_object_files)
+$(kernel): cargo $(rust_os) $(assembly_object_files) $(linker_script)
+	@docker $(docker_args) ld -n -T $(linker_script) -o $(kernel) $(assembly_object_files) $(rust_os)
 
 cargo:
 	@docker $(docker_args) cargo build --target $(target)
