@@ -2,6 +2,7 @@ arch ?= x86_64
 kernel := build/kernel-$(arch).bin
 iso := build/os-$(arch).iso
 docker_args := run --rm -v $(shell pwd):/intermezzOS arthurgeek/intermezzos
+target := $(arch)-unknown-linux-gnu
 
 linker_script := src/arch/$(arch)/linker.ld
 grub_cfg := src/arch/$(arch)/grub.cfg
@@ -30,6 +31,9 @@ $(iso): $(kernel) $(grub_cfg)
 
 $(kernel): $(assembly_object_files) $(linker_script)
 	@docker $(docker_args) ld -n -T $(linker_script) -o $(kernel) $(assembly_object_files)
+
+cargo:
+	@docker $(docker_args) cargo build --target $(target)
 
 # compile assembly files
 build/arch/$(arch)/%.o: src/arch/$(arch)/%.asm
