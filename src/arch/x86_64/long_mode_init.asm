@@ -2,6 +2,10 @@ global long_mode_start
 bits 64
 
 long_mode_start:
+  ; call the rust main
+  extern rust_main
+  call rust_main
+
   ; print Hello World! to the screen
   mov word [0xb8000], 0x0148 ; H
   mov word [0xb8002], 0x0265 ; e
