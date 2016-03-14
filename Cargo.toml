@@ -1,0 +1,7 @@
+[package]
+name = "os"
+version = "0.1.0"
+authors = ["Arthur Zapparoli <arthur@zapparo.li>"]
+
+[lib]
+crate-type = ["staticlib"]
