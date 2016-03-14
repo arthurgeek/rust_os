@@ -6,10 +6,10 @@ extern crate rlibc;
 #[no_mangle]
 pub extern fn rust_main() {
     // ATTENTION: we have a very small stack and no guard page
-    let hello = b"Hello World!";
+    let hello = b"\x02\x01 Hello World! \x01\x02";
     let color_byte = 0x1f; // white fg, blue bg
 
-    let mut hello_colored = [color_byte; 24];
+    let mut hello_colored = [color_byte; 36];
     for (i, char_byte) in hello.into_iter().enumerate() {
         hello_colored[i*2] = *char_byte;
     }
