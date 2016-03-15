@@ -1,5 +1,6 @@
 use core::ptr::Unique;
 use core::fmt::Write;
+use spin::Mutex;
 
 #[allow(dead_code)]
 #[repr(u8)]
@@ -111,17 +112,8 @@ impl ::core::fmt::Write for Writer {
     }
 }
 
-pub fn print_something() {
-    let mut writer = Writer {
-        column_position: 0,
-        color_code: ColorCode::new(Color::LightGreen, Color::Black),
-        buffer: unsafe { Unique::new(0xb8000 as *mut _) },
-    };
-
-    writer.write_byte(b'H');
-    writer.write_str("ello! ");
-    write!(writer, "The numbers are {} and {}", 42, 1.0/3.0);
-    writeln!(writer, "A");
-    writeln!(writer, "B");
-    writeln!(writer, "C");
-}
+pub static WRITER: Mutex<Writer> = Mutex::new(Writer {
+    column_position: 0,
+    color_code: ColorCode::new(Color::LightGreen, Color::Black),
+    buffer: unsafe { Unique::new(0xb8000 as *mut _) },
+});
