@@ -23,6 +23,7 @@ pub extern fn rust_main() {
     let buffer_ptr = (0xb8000 + 1988) as *mut _;
     unsafe { *buffer_ptr = hello_colored };
 
+    vga_buffer::clear_screen();
     println!("It works{}", "!");
 
     loop{}
