@@ -28,6 +28,27 @@ start:
   cmp ecx, 512 ; if counter is 512, the whole P2 table is mapped
   jne .map_p2_table ; else map the next entry
 
+  ; move page table address to cr3
+  mov eax, p4_table
+  mov cr3, eax
+
+  ; enable PAE
+  mov eax, cr4
+  or eax, 1 << 5
+  mov cr4, eax
+
+  ; set the long mode bit
+  mov ecx, 0xC0000080
+  rdmsr
+  or eax, 1 << 8
+  wrmsr
+
+  ; enable paging
+  mov eax, cr0
+  or eax, 1 << 31
+  or eax, 1 << 16
+  mov cr0, eax
+
   mov word [0xb8000], 0x0148 ; H
   mov word [0xb8002], 0x0265 ; e
   mov word [0xb8004], 0x036c ; l
