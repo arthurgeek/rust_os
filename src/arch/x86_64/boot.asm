@@ -9,6 +9,12 @@ start:
   ; load 64-bit GDT
   lgdt [gdt64.pointer]
 
+  ; update selectors
+  mov ax, gdt64.data
+  mov ss, ax ; stack selector
+  mov ds, ax ; data selector
+  mov es, ax ; extra selector
+
   mov word [0xb8000], 0x0148 ; H
   mov word [0xb8002], 0x0265 ; e
   mov word [0xb8004], 0x036c ; l
